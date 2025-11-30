@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -80,6 +80,14 @@ export function SlotMachine({ className }: SlotMachineProps) {
   const [credits, setCredits] = useState(1000)
   const [totalWins, setTotalWins] = useState(0)
   const [lastWinAmount, setLastWinAmount] = useState(0)
+  const [shakeEnabled, setShakeEnabled] = useState(false)
+
+  // Shake detection refs
+  const lastAcceleration = useRef<{ x: number; y: number; z: number } | null>(null)
+  const shakeThreshold = 15 // Sensitivity threshold for shake detection
+  const lastShakeTime = useRef<number>(0)
+  const shakeCooldown = 2000 // 2 seconds cooldown between shakes
+  const spinRef = useRef<(() => void) | null>(null)
 
   const checkWins = (currentGrid: Grid): WinLine[] => {
     const wins: WinLine[] = []
@@ -131,7 +139,7 @@ export function SlotMachine({ className }: SlotMachineProps) {
     return wins
   }
 
-  const spin = () => {
+  const spin = useCallback(() => {
     if (isSpinning || credits < 10) return
 
     setCredits((prev) => prev - 10)
@@ -205,7 +213,65 @@ export function SlotMachine({ className }: SlotMachineProps) {
         setIsSpinning(false)
       }
     }, spinInterval)
-  }
+  }, [isSpinning, credits])
+
+  // Store spin function in ref for shake detection
+  useEffect(() => {
+    spinRef.current = spin
+  }, [spin])
+
+  // Shake detection effect
+  useEffect(() => {
+    // Request permission for device motion (iOS 13+)
+    if (typeof DeviceMotionEvent !== "undefined" && typeof (DeviceMotionEvent as any).requestPermission === "function") {
+      ;(DeviceMotionEvent as any)
+        .requestPermission()
+        .then((response: string) => {
+          if (response === "granted") {
+            setShakeEnabled(true)
+          }
+        })
+        .catch(() => {
+          // Permission denied or error
+        })
+    } else {
+      // Android and older iOS - no permission needed
+      setShakeEnabled(true)
+    }
+
+    if (!shakeEnabled) return
+
+    const handleDeviceMotion = (event: DeviceMotionEvent) => {
+      if (!event.accelerationIncludingGravity) return
+
+      const { x, y, z } = event.accelerationIncludingGravity
+
+      if (lastAcceleration.current) {
+        const deltaX = Math.abs(x! - lastAcceleration.current.x)
+        const deltaY = Math.abs(y! - lastAcceleration.current.y)
+        const deltaZ = Math.abs(z! - lastAcceleration.current.z)
+
+        const acceleration = Math.sqrt(deltaX * deltaX + deltaY * deltaY + deltaZ * deltaZ)
+
+        const now = Date.now()
+        if (acceleration > shakeThreshold && now - lastShakeTime.current > shakeCooldown) {
+          lastShakeTime.current = now
+          // Trigger spin using ref
+          if (spinRef.current) {
+            spinRef.current()
+          }
+        }
+      }
+
+      lastAcceleration.current = { x: x!, y: y!, z: z! }
+    }
+
+    window.addEventListener("devicemotion", handleDeviceMotion as EventListener)
+
+    return () => {
+      window.removeEventListener("devicemotion", handleDeviceMotion as EventListener)
+    }
+  }, [shakeEnabled])
 
   const hasWon = winLines.length > 0
 
@@ -293,28 +359,35 @@ export function SlotMachine({ className }: SlotMachineProps) {
       </div>
 
       {/* Spin Button */}
-      <Button
-        onClick={spin}
-        disabled={isSpinning || credits < 10}
-        size="lg"
-        className={cn(
-          "w-full max-w-xs sm:max-w-sm sm:min-w-[300px] h-14 sm:h-16 text-lg sm:text-2xl font-black rounded-full shadow-[0_0_30px_rgba(234,179,8,0.6)] transition-all duration-300",
-          isSpinning
-            ? "bg-gradient-to-r from-gray-600 to-gray-700 cursor-not-allowed"
-            : "bg-gradient-to-r from-yellow-500 via-yellow-400 to-yellow-500 hover:from-yellow-400 hover:via-yellow-300 hover:to-yellow-400 hover:shadow-[0_0_40px_rgba(234,179,8,0.8)] hover:scale-105 active:scale-95",
-          credits < 10 && "opacity-50 cursor-not-allowed"
+      <div className="w-full max-w-xs sm:max-w-sm flex flex-col items-center gap-2">
+        <Button
+          onClick={spin}
+          disabled={isSpinning || credits < 10}
+          size="lg"
+          className={cn(
+            "w-full sm:min-w-[300px] h-14 sm:h-16 text-lg sm:text-2xl font-black rounded-full shadow-[0_0_30px_rgba(234,179,8,0.6)] transition-all duration-300",
+            isSpinning
+              ? "bg-gradient-to-r from-gray-600 to-gray-700 cursor-not-allowed"
+              : "bg-gradient-to-r from-yellow-500 via-yellow-400 to-yellow-500 hover:from-yellow-400 hover:via-yellow-300 hover:to-yellow-400 hover:shadow-[0_0_40px_rgba(234,179,8,0.8)] hover:scale-105 active:scale-95",
+            credits < 10 && "opacity-50 cursor-not-allowed"
+          )}
+        >
+          {credits < 10 ? (
+            <span className="text-sm sm:text-base">INSUFFICIENT CREDITS</span>
+          ) : isSpinning ? (
+            <span className="flex items-center gap-2 text-sm sm:text-base">
+              <span className="animate-spin">🎰</span> SPINNING...
+            </span>
+          ) : (
+            <span className="text-sm sm:text-base">🎰 SPIN 🎰</span>
+          )}
+        </Button>
+        {shakeEnabled && !isSpinning && credits >= 10 && (
+          <div className="text-xs sm:text-sm text-yellow-300/70 text-center animate-pulse">
+            📱 Shake your device to spin!
+          </div>
         )}
-      >
-        {credits < 10 ? (
-          <span className="text-sm sm:text-base">INSUFFICIENT CREDITS</span>
-        ) : isSpinning ? (
-          <span className="flex items-center gap-2 text-sm sm:text-base">
-            <span className="animate-spin">🎰</span> SPINNING...
-          </span>
-        ) : (
-          <span className="text-sm sm:text-base">🎰 SPIN 🎰</span>
-        )}
-      </Button>
+      </div>
 
       {/* Advanced Win Display */}
       {hasWon && !isSpinning && (
