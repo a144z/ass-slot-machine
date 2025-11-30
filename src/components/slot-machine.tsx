@@ -81,6 +81,13 @@ export function SlotMachine({ className }: SlotMachineProps) {
   const [totalWins, setTotalWins] = useState(0)
   const [lastWinAmount, setLastWinAmount] = useState(0)
   const [shakeEnabled, setShakeEnabled] = useState(false)
+  const [autoSpin, setAutoSpin] = useState(false)
+  const [autoSpinCount, setAutoSpinCount] = useState(10)
+  const [remainingAutoSpins, setRemainingAutoSpins] = useState(0)
+  const autoSpinIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const autoSpinRef = useRef(false)
+  const remainingAutoSpinsRef = useRef(0)
+  const creditsRef = useRef(1000)
 
   // Shake detection refs
   const lastAcceleration = useRef<{ x: number; y: number; z: number } | null>(null)
@@ -139,10 +146,18 @@ export function SlotMachine({ className }: SlotMachineProps) {
     return wins
   }
 
-  const spin = useCallback(() => {
-    if (isSpinning || credits < 10) return
+  // Keep credits ref in sync
+  useEffect(() => {
+    creditsRef.current = credits
+  }, [credits])
 
-    setCredits((prev) => prev - 10)
+  const spin = useCallback(() => {
+    if (isSpinning || creditsRef.current < 10) return
+
+    setCredits((prev) => {
+      creditsRef.current = prev - 10
+      return prev - 10
+    })
     setIsSpinning(true)
     setWinLines([])
 
@@ -166,9 +181,9 @@ export function SlotMachine({ className }: SlotMachineProps) {
           SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
         ],
         [
-          SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
-          SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
-          SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
+        SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
+        SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
+        SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
         ],
       ]
       setGrid(randomGrid)
@@ -189,9 +204,9 @@ export function SlotMachine({ className }: SlotMachineProps) {
             SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
           ],
           [
-            SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
-            SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
-            SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
+          SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
+          SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
+          SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
           ],
         ]
 
@@ -211,6 +226,27 @@ export function SlotMachine({ className }: SlotMachineProps) {
         }
 
         setIsSpinning(false)
+
+        // Continue autospin if enabled (using refs to avoid dependency issues)
+        if (autoSpinRef.current && remainingAutoSpinsRef.current > 0) {
+          remainingAutoSpinsRef.current -= 1
+          setRemainingAutoSpins(remainingAutoSpinsRef.current)
+          
+          // Small delay before next autospin
+          setTimeout(() => {
+            if (autoSpinRef.current && remainingAutoSpinsRef.current > 0 && creditsRef.current >= 10) {
+              spin()
+            } else {
+              autoSpinRef.current = false
+              setAutoSpin(false)
+              setRemainingAutoSpins(0)
+              remainingAutoSpinsRef.current = 0
+            }
+          }, 500)
+        } else if (remainingAutoSpinsRef.current === 0 && autoSpinRef.current) {
+          autoSpinRef.current = false
+          setAutoSpin(false)
+        }
       }
     }, spinInterval)
   }, [isSpinning, credits])
@@ -219,6 +255,37 @@ export function SlotMachine({ className }: SlotMachineProps) {
   useEffect(() => {
     spinRef.current = spin
   }, [spin])
+
+  // Handle autospin start/stop
+  const toggleAutoSpin = () => {
+    if (autoSpin) {
+      // Stop autospin
+      autoSpinRef.current = false
+      setAutoSpin(false)
+      setRemainingAutoSpins(0)
+      remainingAutoSpinsRef.current = 0
+    } else {
+      // Start autospin
+      if (credits >= 10 && !isSpinning) {
+        autoSpinRef.current = true
+        remainingAutoSpinsRef.current = autoSpinCount
+        setAutoSpin(true)
+        setRemainingAutoSpins(autoSpinCount)
+        // Start first spin
+        setTimeout(() => spin(), 300)
+      }
+    }
+  }
+
+  // Stop autospin when credits run out
+  useEffect(() => {
+    if (autoSpin && credits < 10) {
+      autoSpinRef.current = false
+      setAutoSpin(false)
+      setRemainingAutoSpins(0)
+      remainingAutoSpinsRef.current = 0
+    }
+  }, [credits, autoSpin])
 
   // Shake detection effect
   useEffect(() => {
@@ -319,10 +386,10 @@ export function SlotMachine({ className }: SlotMachineProps) {
             <div className="grid grid-cols-3 gap-2 sm:gap-3">
               {grid.map((row, rowIndex) =>
                 row.map((symbol, colIndex) => (
-                  <Reel
+            <Reel
                     key={`${rowIndex}-${colIndex}`}
-                    symbol={symbol}
-                    isSpinning={isSpinning}
+              symbol={symbol}
+              isSpinning={isSpinning}
                     delay={(rowIndex * 3 + colIndex) * 80}
                     isWinning={
                       hasWon &&
@@ -340,10 +407,10 @@ export function SlotMachine({ className }: SlotMachineProps) {
                 ))
               )}
             </div>
-          </div>
+        </div>
 
           {/* Jackpot Overlay */}
-          {hasWon && !isSpinning && (
+        {hasWon && !isSpinning && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20 rounded-xl sm:rounded-2xl">
               <div className="bg-gradient-to-r from-yellow-400/95 via-yellow-300/95 to-yellow-400/95 rounded-xl px-6 sm:px-12 py-4 sm:py-6 shadow-[0_0_40px_rgba(250,204,21,0.9)] animate-pulse">
                 <div className="text-3xl sm:text-6xl font-black text-black drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]">
@@ -353,20 +420,21 @@ export function SlotMachine({ className }: SlotMachineProps) {
                   {winLines.length} WIN LINE{winLines.length > 1 ? "S" : ""}!
                 </div>
               </div>
-            </div>
-          )}
+          </div>
+        )}
         </div>
       </div>
 
-      {/* Spin Button */}
-      <div className="w-full max-w-xs sm:max-w-sm flex flex-col items-center gap-2">
+      {/* Spin Controls */}
+      <div className="w-full max-w-xs sm:max-w-sm flex flex-col items-center gap-3">
+        {/* Spin Button */}
         <Button
           onClick={spin}
-          disabled={isSpinning || credits < 10}
+          disabled={isSpinning || credits < 10 || autoSpin}
           size="lg"
           className={cn(
             "w-full sm:min-w-[300px] h-14 sm:h-16 text-lg sm:text-2xl font-black rounded-full shadow-[0_0_30px_rgba(234,179,8,0.6)] transition-all duration-300",
-            isSpinning
+            isSpinning || autoSpin
               ? "bg-gradient-to-r from-gray-600 to-gray-700 cursor-not-allowed"
               : "bg-gradient-to-r from-yellow-500 via-yellow-400 to-yellow-500 hover:from-yellow-400 hover:via-yellow-300 hover:to-yellow-400 hover:shadow-[0_0_40px_rgba(234,179,8,0.8)] hover:scale-105 active:scale-95",
             credits < 10 && "opacity-50 cursor-not-allowed"
@@ -374,6 +442,10 @@ export function SlotMachine({ className }: SlotMachineProps) {
         >
           {credits < 10 ? (
             <span className="text-sm sm:text-base">INSUFFICIENT CREDITS</span>
+          ) : autoSpin ? (
+            <span className="flex items-center gap-2 text-sm sm:text-base">
+              <span className="animate-spin">⚡</span> AUTO SPINNING...
+            </span>
           ) : isSpinning ? (
             <span className="flex items-center gap-2 text-sm sm:text-base">
               <span className="animate-spin">🎰</span> SPINNING...
@@ -382,7 +454,71 @@ export function SlotMachine({ className }: SlotMachineProps) {
             <span className="text-sm sm:text-base">🎰 SPIN 🎰</span>
           )}
         </Button>
-        {shakeEnabled && !isSpinning && credits >= 10 && (
+
+        {/* Autospin Controls */}
+        <div className="w-full bg-black/70 backdrop-blur-sm border-2 border-yellow-500/50 rounded-lg p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-yellow-300 text-sm sm:text-base font-semibold">AUTOSPIN</span>
+            {autoSpin && (
+              <span className="text-yellow-400 text-xs sm:text-sm font-bold">
+                {remainingAutoSpins} remaining
+              </span>
+            )}
+          </div>
+          
+          <div className="flex items-center gap-2 mb-3">
+            {/* Autospin Count Selector */}
+            {!autoSpin && (
+              <div className="flex-1 flex items-center gap-2">
+                <span className="text-yellow-300 text-xs sm:text-sm">Spins:</span>
+                <select
+                  value={autoSpinCount}
+                  onChange={(e) => setAutoSpinCount(Number(e.target.value))}
+                  disabled={autoSpin || isSpinning}
+                  className="flex-1 bg-gray-800 border border-yellow-500/50 rounded px-2 py-1 text-yellow-300 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+              </div>
+            )}
+            
+            {/* Autospin Toggle Button */}
+            <Button
+              onClick={toggleAutoSpin}
+              disabled={isSpinning || credits < 10}
+              size="sm"
+              className={cn(
+                "min-w-[100px] sm:min-w-[120px] h-9 sm:h-10 text-xs sm:text-sm font-bold rounded-lg transition-all duration-300",
+                autoSpin
+                  ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white"
+                  : "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white",
+                (isSpinning || credits < 10) && "opacity-50 cursor-not-allowed"
+              )}
+            >
+              {autoSpin ? (
+                <span className="flex items-center gap-1">
+                  <span className="animate-pulse">⏹</span> STOP
+                </span>
+              ) : (
+                <span className="flex items-center gap-1">
+                  <span>⚡</span> START
+                </span>
+              )}
+            </Button>
+          </div>
+
+          {autoSpin && (
+            <div className="text-xs text-yellow-300/70 text-center animate-pulse">
+              Autospin active - {remainingAutoSpins} spins remaining
+            </div>
+          )}
+        </div>
+
+        {shakeEnabled && !isSpinning && !autoSpin && credits >= 10 && (
           <div className="text-xs sm:text-sm text-yellow-300/70 text-center animate-pulse">
             📱 Shake your device to spin!
           </div>
