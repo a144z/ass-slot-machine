@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -204,33 +204,33 @@ export function SlotMachine({ className }: SlotMachineProps) {
   const hasWon = winLines.length > 0
 
   return (
-    <div className={cn("flex flex-col items-center gap-6 p-8 min-h-screen bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900", className)}>
+    <div className={cn("flex flex-col items-center gap-4 sm:gap-6 p-4 sm:p-8 min-h-screen bg-gradient-to-b from-slate-900 via-purple-900 to-slate-900", className)}>
       {/* Casino Header */}
-      <div className="text-center mb-4">
-        <h1 className="text-5xl font-bold mb-2 bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]">
+      <div className="text-center mb-2 sm:mb-4 w-full">
+        <h1 className="text-3xl sm:text-5xl font-bold mb-2 sm:mb-4 bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]">
           🎰 LUCKY SLOTS 🎰
         </h1>
-        <div className="flex items-center justify-center gap-8 mt-4">
-          <div className="bg-black/50 border-2 border-yellow-500 rounded-lg px-6 py-3 shadow-[0_0_20px_rgba(234,179,8,0.5)]">
-            <div className="text-yellow-400 text-sm font-semibold">CREDITS</div>
-            <div className="text-3xl font-bold text-yellow-300">{credits.toLocaleString()}</div>
+        <div className="flex items-center justify-center gap-4 sm:gap-8 mt-2 sm:mt-4 flex-wrap">
+          <div className="bg-black/70 backdrop-blur-sm border-2 border-yellow-500 rounded-xl px-4 sm:px-6 py-2 sm:py-3 shadow-[0_0_20px_rgba(234,179,8,0.5)] min-w-[120px] sm:min-w-[160px]">
+            <div className="text-yellow-400 text-xs sm:text-sm font-semibold">CREDITS</div>
+            <div className="text-xl sm:text-3xl font-bold text-yellow-300">{credits.toLocaleString()}</div>
           </div>
-          <div className="bg-black/50 border-2 border-yellow-500 rounded-lg px-6 py-3 shadow-[0_0_20px_rgba(234,179,8,0.5)]">
-            <div className="text-yellow-400 text-sm font-semibold">BET</div>
-            <div className="text-3xl font-bold text-yellow-300">10</div>
+          <div className="bg-black/70 backdrop-blur-sm border-2 border-yellow-500 rounded-xl px-4 sm:px-6 py-2 sm:py-3 shadow-[0_0_20px_rgba(234,179,8,0.5)] min-w-[120px] sm:min-w-[160px]">
+            <div className="text-yellow-400 text-xs sm:text-sm font-semibold">BET</div>
+            <div className="text-xl sm:text-3xl font-bold text-yellow-300">10</div>
           </div>
         </div>
       </div>
 
       {/* Main Slot Machine */}
-      <div className="relative">
+      <div className="relative w-full max-w-2xl px-2 sm:px-0">
         {/* Outer Frame with Neon Effect */}
-        <div className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl p-6 shadow-[0_0_50px_rgba(139,92,246,0.6),inset_0_0_50px_rgba(0,0,0,0.5)] border-4 border-yellow-500/50">
+        <div className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl sm:rounded-2xl p-3 sm:p-6 shadow-[0_0_50px_rgba(139,92,246,0.6),inset_0_0_50px_rgba(0,0,0,0.5)] border-2 sm:border-4 border-yellow-500/50">
           {/* Inner Reels Container */}
-          <div className="relative bg-black/80 rounded-xl p-4 border-2 border-yellow-400/30">
-            {/* Win Lines Overlay */}
+          <div className="relative bg-black/90 backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-4 border-2 border-yellow-400/30">
+            {/* Win Lines Overlay - More Visible Cross Lines */}
             {hasWon && !isSpinning && (
-              <div className="absolute inset-0 pointer-events-none z-10">
+              <div className="absolute inset-0 pointer-events-none z-10 rounded-lg sm:rounded-xl overflow-hidden">
                 {winLines.map((line, idx) => (
                   <WinLineOverlay key={idx} line={line} />
                 ))}
@@ -238,7 +238,7 @@ export function SlotMachine({ className }: SlotMachineProps) {
             )}
 
             {/* Grid of Reels */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
               {grid.map((row, rowIndex) =>
                 row.map((symbol, colIndex) => (
                   <Reel
@@ -266,12 +266,12 @@ export function SlotMachine({ className }: SlotMachineProps) {
 
           {/* Jackpot Overlay */}
           {hasWon && !isSpinning && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-              <div className="bg-gradient-to-r from-yellow-400/90 via-yellow-300/90 to-yellow-400/90 rounded-xl px-12 py-6 shadow-[0_0_40px_rgba(250,204,21,0.9)] animate-pulse">
-                <div className="text-6xl font-black text-black drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]">
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20 rounded-xl sm:rounded-2xl">
+              <div className="bg-gradient-to-r from-yellow-400/95 via-yellow-300/95 to-yellow-400/95 rounded-xl px-6 sm:px-12 py-4 sm:py-6 shadow-[0_0_40px_rgba(250,204,21,0.9)] animate-pulse">
+                <div className="text-3xl sm:text-6xl font-black text-black drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]">
                   🎉 JACKPOT! 🎉
                 </div>
-                <div className="text-2xl font-bold text-black mt-2 text-center">
+                <div className="text-lg sm:text-2xl font-bold text-black mt-2 text-center">
                   {winLines.length} WIN LINE{winLines.length > 1 ? "S" : ""}!
                 </div>
               </div>
@@ -286,7 +286,7 @@ export function SlotMachine({ className }: SlotMachineProps) {
         disabled={isSpinning || credits < 10}
         size="lg"
         className={cn(
-          "min-w-[300px] h-16 text-2xl font-black rounded-full shadow-[0_0_30px_rgba(234,179,8,0.6)] transition-all duration-300",
+          "w-full max-w-xs sm:max-w-sm sm:min-w-[300px] h-14 sm:h-16 text-lg sm:text-2xl font-black rounded-full shadow-[0_0_30px_rgba(234,179,8,0.6)] transition-all duration-300",
           isSpinning
             ? "bg-gradient-to-r from-gray-600 to-gray-700 cursor-not-allowed"
             : "bg-gradient-to-r from-yellow-500 via-yellow-400 to-yellow-500 hover:from-yellow-400 hover:via-yellow-300 hover:to-yellow-400 hover:shadow-[0_0_40px_rgba(234,179,8,0.8)] hover:scale-105 active:scale-95",
@@ -294,23 +294,23 @@ export function SlotMachine({ className }: SlotMachineProps) {
         )}
       >
         {credits < 10 ? (
-          "INSUFFICIENT CREDITS"
+          <span className="text-sm sm:text-base">INSUFFICIENT CREDITS</span>
         ) : isSpinning ? (
-          <span className="flex items-center gap-2">
+          <span className="flex items-center gap-2 text-sm sm:text-base">
             <span className="animate-spin">🎰</span> SPINNING...
           </span>
         ) : (
-          "🎰 SPIN 🎰"
+          <span className="text-sm sm:text-base">🎰 SPIN 🎰</span>
         )}
       </Button>
 
       {/* Win Display */}
       {hasWon && !isSpinning && (
-        <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-2 border-green-400 rounded-lg px-8 py-4 text-center">
-          <div className="text-xl font-bold text-green-300 mb-2">
+        <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-2 border-green-400 rounded-lg px-4 sm:px-8 py-3 sm:py-4 text-center w-full max-w-md">
+          <div className="text-lg sm:text-xl font-bold text-green-300 mb-1 sm:mb-2">
             🎊 CONGRATULATIONS! 🎊
           </div>
-          <div className="text-lg text-green-200">
+          <div className="text-base sm:text-lg text-green-200">
             You won {winLines.length * 50} credits!
           </div>
         </div>
@@ -326,24 +326,50 @@ interface WinLineOverlayProps {
 function WinLineOverlay({ line }: WinLineOverlayProps) {
   if (line.type === "row") {
     return (
-      <div
-        className="absolute left-0 right-0 bg-gradient-to-r from-transparent via-yellow-400/40 to-transparent border-y-2 border-yellow-400 animate-pulse"
-        style={{
-          top: `${line.index * 33.33}%`,
-          height: "33.33%",
-        }}
-      />
+      <>
+        {/* Thick horizontal line with strong glow */}
+        <div
+          className="absolute left-0 right-0 bg-gradient-to-r from-transparent via-yellow-400/80 to-transparent border-y-[6px] border-yellow-400 animate-pulse shadow-[0_0_30px_rgba(234,179,8,1)] z-10"
+          style={{
+            top: `${line.index * 33.33 + 16.665}%`,
+            height: "6px",
+            transform: "translateY(-50%)",
+          }}
+        />
+        {/* Extended glow effect */}
+        <div
+          className="absolute left-0 right-0 bg-yellow-400/40 blur-md animate-pulse"
+          style={{
+            top: `${line.index * 33.33 + 16.665}%`,
+            height: "30px",
+            transform: "translateY(-50%)",
+          }}
+        />
+      </>
     )
   }
   if (line.type === "column") {
     return (
-      <div
-        className="absolute top-0 bottom-0 bg-gradient-to-b from-transparent via-yellow-400/40 to-transparent border-x-2 border-yellow-400 animate-pulse"
-        style={{
-          left: `${line.index * 33.33}%`,
-          width: "33.33%",
-        }}
-      />
+      <>
+        {/* Thick vertical line with strong glow */}
+        <div
+          className="absolute top-0 bottom-0 bg-gradient-to-b from-transparent via-yellow-400/80 to-transparent border-x-[6px] border-yellow-400 animate-pulse shadow-[0_0_30px_rgba(234,179,8,1)] z-10"
+          style={{
+            left: `${line.index * 33.33 + 16.665}%`,
+            width: "6px",
+            transform: "translateX(-50%)",
+          }}
+        />
+        {/* Extended glow effect */}
+        <div
+          className="absolute top-0 bottom-0 bg-yellow-400/40 blur-md animate-pulse"
+          style={{
+            left: `${line.index * 33.33 + 16.665}%`,
+            width: "30px",
+            transform: "translateX(-50%)",
+          }}
+        />
+      </>
     )
   }
   if (line.type === "diagonal") {
@@ -351,38 +377,60 @@ function WinLineOverlay({ line }: WinLineOverlayProps) {
       // Top-left to bottom-right
       return (
         <div className="absolute inset-0">
-          <div className="absolute top-0 left-0 w-full h-full">
-            <div
-              className="absolute bg-gradient-to-br from-transparent via-yellow-400/40 to-transparent border-2 border-yellow-400 animate-pulse"
-              style={{
-                width: "141.42%",
-                height: "2px",
-                top: "50%",
-                left: "0%",
-                transform: "translateY(-50%) rotate(45deg)",
-                transformOrigin: "left center",
-              }}
-            />
-          </div>
+          {/* Thick diagonal line */}
+          <div
+            className="absolute bg-gradient-to-br from-transparent via-yellow-400/80 to-transparent border-[6px] border-yellow-400 animate-pulse shadow-[0_0_30px_rgba(234,179,8,1)] z-10"
+            style={{
+              width: "141.42%",
+              height: "6px",
+              top: "50%",
+              left: "0%",
+              transform: "translateY(-50%) rotate(45deg)",
+              transformOrigin: "left center",
+            }}
+          />
+          {/* Extended glow effect */}
+          <div
+            className="absolute bg-yellow-400/40 blur-md animate-pulse"
+            style={{
+              width: "141.42%",
+              height: "30px",
+              top: "50%",
+              left: "0%",
+              transform: "translateY(-50%) rotate(45deg)",
+              transformOrigin: "left center",
+            }}
+          />
         </div>
       )
     } else {
       // Top-right to bottom-left
       return (
         <div className="absolute inset-0">
-          <div className="absolute top-0 right-0 w-full h-full">
-            <div
-              className="absolute bg-gradient-to-bl from-transparent via-yellow-400/40 to-transparent border-2 border-yellow-400 animate-pulse"
-              style={{
-                width: "141.42%",
-                height: "2px",
-                top: "50%",
-                right: "0%",
-                transform: "translateY(-50%) rotate(-45deg)",
-                transformOrigin: "right center",
-              }}
-            />
-          </div>
+          {/* Thick diagonal line */}
+          <div
+            className="absolute bg-gradient-to-bl from-transparent via-yellow-400/80 to-transparent border-[6px] border-yellow-400 animate-pulse shadow-[0_0_30px_rgba(234,179,8,1)] z-10"
+            style={{
+              width: "141.42%",
+              height: "6px",
+              top: "50%",
+              right: "0%",
+              transform: "translateY(-50%) rotate(-45deg)",
+              transformOrigin: "right center",
+            }}
+          />
+          {/* Extended glow effect */}
+          <div
+            className="absolute bg-yellow-400/40 blur-md animate-pulse"
+            style={{
+              width: "141.42%",
+              height: "30px",
+              top: "50%",
+              right: "0%",
+              transform: "translateY(-50%) rotate(-45deg)",
+              transformOrigin: "right center",
+            }}
+          />
         </div>
       )
     }
@@ -401,9 +449,9 @@ function Reel({ symbol, isSpinning, delay, isWinning }: ReelProps) {
   return (
     <div
       className={cn(
-        "relative w-28 h-32 bg-gradient-to-b from-gray-800 via-gray-700 to-gray-800 rounded-lg border-2 flex items-center justify-center overflow-hidden shadow-lg transition-all duration-300",
+        "relative w-full aspect-[0.85] max-w-[120px] sm:max-w-[140px] bg-gradient-to-b from-gray-800 via-gray-700 to-gray-800 rounded-lg sm:rounded-xl border-2 flex items-center justify-center overflow-hidden shadow-lg transition-all duration-300",
         isWinning
-          ? "border-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.8)] scale-105 z-10"
+          ? "border-yellow-400 shadow-[0_0_25px_rgba(234,179,8,1)] scale-105 z-10 ring-4 ring-yellow-400/50"
           : "border-gray-600",
         isSpinning && "animate-spin-slow"
       )}
@@ -413,7 +461,7 @@ function Reel({ symbol, isSpinning, delay, isWinning }: ReelProps) {
     >
       <div
         className={cn(
-          "relative w-full h-full flex items-center justify-center transition-all duration-300 p-2",
+          "relative w-full h-full flex items-center justify-center transition-all duration-300 p-1.5 sm:p-2",
           isSpinning && "opacity-60"
         )}
       >
@@ -434,12 +482,15 @@ function Reel({ symbol, isSpinning, delay, isWinning }: ReelProps) {
 
       {/* Winning glow effect */}
       {isWinning && (
-        <div className="absolute inset-0 bg-yellow-400/20 animate-pulse rounded-lg" />
+        <>
+          <div className="absolute inset-0 bg-yellow-400/30 animate-pulse rounded-lg sm:rounded-xl" />
+          <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 via-transparent to-yellow-400/20 animate-pulse rounded-lg sm:rounded-xl" />
+        </>
       )}
 
       {/* Top and bottom borders for reel effect */}
-      <div className="absolute top-0 left-0 right-0 h-2 bg-black/50 border-b border-gray-600" />
-      <div className="absolute bottom-0 left-0 right-0 h-2 bg-black/50 border-t border-gray-600" />
+      <div className="absolute top-0 left-0 right-0 h-1.5 sm:h-2 bg-black/60 border-b border-gray-600/50" />
+      <div className="absolute bottom-0 left-0 right-0 h-1.5 sm:h-2 bg-black/60 border-t border-gray-600/50" />
     </div>
   )
 }

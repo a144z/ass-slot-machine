@@ -142,3 +142,18 @@
     box-shadow: 0 0 20px rgba(234, 179, 8, 0.8), 0 0 40px rgba(234, 179, 8, 0.5);
   }
 }
+
+@keyframes win-line-glow {
+  0%, 100% {
+    opacity: 0.8;
+    box-shadow: 0 0 10px rgba(234, 179, 8, 0.8), 0 0 20px rgba(234, 179, 8, 0.6);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 20px rgba(234, 179, 8, 1), 0 0 40px rgba(234, 179, 8, 0.8);
+  }
+}
+
+.animate-win-line {
+  animation: win-line-glow 1s ease-in-out infinite;
+}
