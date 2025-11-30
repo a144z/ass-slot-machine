@@ -78,6 +78,8 @@ export function SlotMachine({ className }: SlotMachineProps) {
   const [isSpinning, setIsSpinning] = useState(false)
   const [winLines, setWinLines] = useState<WinLine[]>([])
   const [credits, setCredits] = useState(1000)
+  const [totalWins, setTotalWins] = useState(0)
+  const [lastWinAmount, setLastWinAmount] = useState(0)
 
   const checkWins = (currentGrid: Grid): WinLine[] => {
     const wins: WinLine[] = []
@@ -194,6 +196,10 @@ export function SlotMachine({ className }: SlotMachineProps) {
         if (wins.length > 0) {
           const winAmount = wins.length * 50
           setCredits((prev) => prev + winAmount)
+          setTotalWins((prev) => prev + wins.length)
+          setLastWinAmount(winAmount)
+        } else {
+          setLastWinAmount(0)
         }
 
         setIsSpinning(false)
@@ -210,15 +216,21 @@ export function SlotMachine({ className }: SlotMachineProps) {
         <h1 className="text-3xl sm:text-5xl font-bold mb-2 sm:mb-4 bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 bg-clip-text text-transparent drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]">
           🎰 LUCKY SLOTS 🎰
         </h1>
-        <div className="flex items-center justify-center gap-4 sm:gap-8 mt-2 sm:mt-4 flex-wrap">
-          <div className="bg-black/70 backdrop-blur-sm border-2 border-yellow-500 rounded-xl px-4 sm:px-6 py-2 sm:py-3 shadow-[0_0_20px_rgba(234,179,8,0.5)] min-w-[120px] sm:min-w-[160px]">
+        <div className="flex items-center justify-center gap-3 sm:gap-6 mt-2 sm:mt-4 flex-wrap">
+          <div className="bg-black/70 backdrop-blur-sm border-2 border-yellow-500 rounded-xl px-3 sm:px-6 py-2 sm:py-3 shadow-[0_0_20px_rgba(234,179,8,0.5)] min-w-[100px] sm:min-w-[140px]">
             <div className="text-yellow-400 text-xs sm:text-sm font-semibold">CREDITS</div>
-            <div className="text-xl sm:text-3xl font-bold text-yellow-300">{credits.toLocaleString()}</div>
+            <div className="text-lg sm:text-3xl font-bold text-yellow-300">{credits.toLocaleString()}</div>
           </div>
-          <div className="bg-black/70 backdrop-blur-sm border-2 border-yellow-500 rounded-xl px-4 sm:px-6 py-2 sm:py-3 shadow-[0_0_20px_rgba(234,179,8,0.5)] min-w-[120px] sm:min-w-[160px]">
+          <div className="bg-black/70 backdrop-blur-sm border-2 border-yellow-500 rounded-xl px-3 sm:px-6 py-2 sm:py-3 shadow-[0_0_20px_rgba(234,179,8,0.5)] min-w-[100px] sm:min-w-[140px]">
             <div className="text-yellow-400 text-xs sm:text-sm font-semibold">BET</div>
-            <div className="text-xl sm:text-3xl font-bold text-yellow-300">10</div>
+            <div className="text-lg sm:text-3xl font-bold text-yellow-300">10</div>
           </div>
+          {lastWinAmount > 0 && !isSpinning && (
+            <div className="bg-black/70 backdrop-blur-sm border-2 border-green-500 rounded-xl px-3 sm:px-6 py-2 sm:py-3 shadow-[0_0_20px_rgba(34,197,94,0.5)] min-w-[100px] sm:min-w-[140px] animate-pulse">
+              <div className="text-green-400 text-xs sm:text-sm font-semibold">LAST WIN</div>
+              <div className="text-lg sm:text-3xl font-bold text-green-300">+{lastWinAmount}</div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -304,14 +316,87 @@ export function SlotMachine({ className }: SlotMachineProps) {
         )}
       </Button>
 
-      {/* Win Display */}
+      {/* Advanced Win Display */}
       {hasWon && !isSpinning && (
-        <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-2 border-green-400 rounded-lg px-4 sm:px-8 py-3 sm:py-4 text-center w-full max-w-md">
-          <div className="text-lg sm:text-xl font-bold text-green-300 mb-1 sm:mb-2">
-            🎊 CONGRATULATIONS! 🎊
+        <div className="w-full max-w-2xl space-y-3">
+          <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-2 border-green-400 rounded-lg px-4 sm:px-8 py-3 sm:py-4 text-center">
+            <div className="text-lg sm:text-xl font-bold text-green-300 mb-2">
+              🎊 CONGRATULATIONS! 🎊
+            </div>
+            <div className="text-base sm:text-lg text-green-200 mb-3">
+              You won <span className="font-bold text-green-300">{winLines.length * 50}</span> credits!
+            </div>
           </div>
-          <div className="text-base sm:text-lg text-green-200">
-            You won {winLines.length * 50} credits!
+
+          {/* Win Breakdown */}
+          <div className="bg-black/70 backdrop-blur-sm border-2 border-yellow-400/50 rounded-lg p-4 sm:p-6">
+            <div className="text-yellow-400 text-sm sm:text-base font-bold mb-3 text-center">
+              WIN BREAKDOWN
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Rows */}
+              <div className="bg-gray-900/50 rounded-lg p-3 border border-yellow-400/30">
+                <div className="text-yellow-300 text-xs sm:text-sm font-semibold mb-2">HORIZONTAL LINES</div>
+                <div className="text-2xl sm:text-3xl font-bold text-yellow-400">
+                  {winLines.filter((l) => l.type === "row").length}
+                </div>
+                {winLines
+                  .filter((l) => l.type === "row")
+                  .map((line, idx) => (
+                    <div key={idx} className="text-xs text-yellow-200 mt-1">
+                      Row {line.index + 1}: {line.symbols[0]}
+                    </div>
+                  ))}
+              </div>
+
+              {/* Columns */}
+              <div className="bg-gray-900/50 rounded-lg p-3 border border-yellow-400/30">
+                <div className="text-yellow-300 text-xs sm:text-sm font-semibold mb-2">VERTICAL LINES</div>
+                <div className="text-2xl sm:text-3xl font-bold text-yellow-400">
+                  {winLines.filter((l) => l.type === "column").length}
+                </div>
+                {winLines
+                  .filter((l) => l.type === "column")
+                  .map((line, idx) => (
+                    <div key={idx} className="text-xs text-yellow-200 mt-1">
+                      Col {line.index + 1}: {line.symbols[0]}
+                    </div>
+                  ))}
+              </div>
+
+              {/* Diagonals */}
+              <div className="bg-gray-900/50 rounded-lg p-3 border border-yellow-400/30">
+                <div className="text-yellow-300 text-xs sm:text-sm font-semibold mb-2">DIAGONAL LINES</div>
+                <div className="text-2xl sm:text-3xl font-bold text-yellow-400">
+                  {winLines.filter((l) => l.type === "diagonal").length}
+                </div>
+                {winLines
+                  .filter((l) => l.type === "diagonal")
+                  .map((line, idx) => (
+                    <div key={idx} className="text-xs text-yellow-200 mt-1">
+                      {line.index === 0 ? "Main" : "Anti"}: {line.symbols[0]}
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            {/* Total Summary */}
+            <div className="mt-4 pt-4 border-t border-yellow-400/30">
+              <div className="flex justify-between items-center">
+                <span className="text-yellow-300 text-sm sm:text-base font-semibold">Total Win Lines:</span>
+                <span className="text-2xl sm:text-3xl font-bold text-yellow-400">{winLines.length}</span>
+              </div>
+              <div className="flex justify-between items-center mt-2">
+                <span className="text-yellow-300 text-sm sm:text-base font-semibold">Payout per Line:</span>
+                <span className="text-xl sm:text-2xl font-bold text-yellow-400">50</span>
+              </div>
+              <div className="flex justify-between items-center mt-2 pt-2 border-t border-yellow-400/20">
+                <span className="text-green-300 text-base sm:text-lg font-bold">Total Payout:</span>
+                <span className="text-2xl sm:text-4xl font-black text-green-400">
+                  {winLines.length * 50}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       )}
